@@ -1,3 +1,5 @@
+// joselyn 2
+
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
@@ -22,6 +24,8 @@ contract LiaoToken is IERC20 {
 
     string private _name;
     string private _symbol;
+
+    mapping(address => mapping(address => uint256)) public _allowance;
 
     event Claim(address indexed user, uint256 indexed amount);
 
@@ -60,17 +64,44 @@ contract LiaoToken is IERC20 {
 
     function transfer(address to, uint256 amount) external returns (bool) {
         // TODO: please add your implementaiton here
+        require(_balances[msg.sender] >= amount);
+        _balances[msg.sender] -= amount;
+        _balances[to] += amount;
+
+        // emit needs to use an event
+        emit Transfer(msg.sender, to, amount);
+        return true;
     }
 
     function transferFrom(address from, address to, uint256 value) external returns (bool) {
         // TODO: please add your implementaiton here
+        require(to != address(0));
+        require(_balances[from] >= value);
+        
+        _balances[from] -= value;
+        _balances[to] += value;
+        _allowance[from][msg.sender] -= value;
+        emit Transfer(from, to, value);
+        return true;
+    }
+    
+    function _approve(address owner, address spender, uint256 amount) private {
+        _allowance[owner][spender] = amount;
+        emit Approval(owner, spender, amount);
     }
 
     function approve(address spender, uint256 amount) external returns (bool) {
         // TODO: please add your implementaiton here
+        // _approve(msg.sender, spender, amount);
+        _allowance[msg.sender][spender] = amount;
+        emit Approval(msg.sender, spender, amount);
+        return true;
+
     }
 
     function allowance(address owner, address spender) public view returns (uint256) {
         // TODO: please add your implementaiton here
+        return _allowance[owner][spender];
+        
     }
 }
